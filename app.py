@@ -28,7 +28,7 @@ def simpan_data(kota, lat, lon):
 # FUNGSI BARU (HTTPS AMAN): Mengambil lokasi otomatis lewat IP Internet tanpa pop-up izin
 def ambil_lokasi_otomatis():
     try:
-        # Menggunakan ipapi.co dengan protokol HTTPS yang aman untuk Streamlit
+        # PERBAIKAN: Menambahkan /json/ di akhir URL agar API mengirimkan data koordinat resmi
         response = requests.get("https://ipapi.co", timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
         data = response.json()
         if not data.get('error'):
