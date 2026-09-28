@@ -52,7 +52,23 @@ with tab2:
         st.dataframe(df_db, use_container_width=True)
         
         st.write("### Sebaran Lokasi Instansi di Peta")
-        df_map = df_db.rename(columns={"Latitude": "latitude", "Longitude": "longitude"})
-        st.map(df_map)
+        
+        # PROSES PENYELARASAN NAMA KOLOM UNTUK PETA (HURUF KECIL WAJIB)
+        df_map = df_db.copy()
+        
+        # Paksa semua nama kolom di dataframe menjadi huruf kecil agar mudah dicocokkan
+        df_map.columns = df_map.columns.str.lower()
+        
+        # Cek apakah kolom latitude dan longitude benar-benar ada di dalam data
+        if 'latitude' in df_map.columns and 'longitude' in df_map.columns:
+            # Hapus baris yang datanya kosong (NaN) pada koordinat agar tidak error
+            df_map = df_map.dropna(subset=['latitude', 'longitude'])
+            
+            if not df_map.empty:
+                st.map(df_map)
+            else:
+                st.warning("Data koordinat di database masih kosong atau tidak valid untuk ditampilkan di peta.")
+        else:
+            st.error("Kolom 'Latitude' atau 'Longitude' tidak ditemukan di Google Sheets Anda. Pastikan nama kolom di Google Sheets sudah sesuai.")
     else:
-        st.info("Belum ada instansi yang terdata di Google Sheets atau data sedang dimuat.")
+        st.info("Belum ada instansi yang mendaftar atau data di Google Sheets masih kosong.")
